@@ -27,9 +27,9 @@ namespace Unity.Reflect.Viewer.UI
         {
             if (m_AppBarPanel != null)
             {
-                m_AppBarPanel.alpha = isActive ? 1 : 0;
-                m_AppBarPanel.interactable = isActive;
-                m_AppBarPanel.blocksRaycasts = isActive;
+                //m_AppBarPanel.alpha = isActive ? 1 : 0;
+                //m_AppBarPanel.interactable = isActive;
+                //m_AppBarPanel.blocksRaycasts = isActive;
             }
         }
 

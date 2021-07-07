@@ -1,10 +1,11 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class Wavecircle : MonoBehaviour
 {
+    public DataHandler datahandler;
     float max = 200;
     float min = 40;
 
@@ -64,23 +65,24 @@ public class Wavecircle : MonoBehaviour
 
     void UpdateValue()
     {
-        if (currentValue >= max)
-        {
-            up = false;
-        }
-        else if (currentValue <= min)
-        {
-            up = true;
-        }
+        currentValue = datahandler.closestDFFound;
+        //if (currentValue >= max)
+        //{
+        //    up = false;
+        //}
+        //else if (currentValue <= min)
+        //{
+        //    up = true;
+        //}
 
-        if (up)
-        {
-            AddOne();
-        }
-        else
-        {
-            MinusOne();
-        }
+        //if (up)
+        //{
+        //    AddOne();
+        //}
+        //else
+        //{
+        //    MinusOne();
+        //}
 
         float val = (currentValue - min) / (max - min)*1f;
 
