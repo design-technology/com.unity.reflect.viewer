@@ -1,37 +1,49 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 public class CircleSlider : MonoBehaviour
 {
- 
-     public bool b=true;
-	 public Image image;
-	 public float speed=0.5f;
+    public DataHandler dataHandler;
 
-  float time =0f;
-  
-  public Text progress;
+    float min;
+    float max;
+    float currentValue;
+    float averageValue;
 
-  
+    public string dataName;
+
+
+    public Image image;
+    public Text progress;
+    public Text actualValue;
+    public Text title;
+    public Text distance;
+
+
+    void Start()
+    {
+        min = dataHandler.GetMin(dataName);
+        max = dataHandler.GetMax(dataName);
+        averageValue = dataHandler.GetAverage(dataName);
+
+        currentValue = dataHandler.GetLocalValue(dataName);
+        title.text = dataName;
+    }
+
     void Update()
     {
-		if(b)
-		{
-			time+=Time.deltaTime*speed;
-			image.fillAmount= time;
-			if(progress)
-			{
-				progress.text = (int)(image.fillAmount*100)+"%";
-			}
-			
-        if(time>1)
-		{
-						
-			time=0;
-		}
+        currentValue = dataHandler.GetLocalValue(dataName);
+
+        float val = (currentValue - min) / (max - min);
+        image.fillAmount = val;
+
+        var perc = (int)(currentValue / averageValue * 100) + "%";
+        progress.text = perc;
+
+        actualValue.text = currentValue + dataHandler.GetUnit(dataName);
     }
-	}
-	
-	
+
 }
+
+
