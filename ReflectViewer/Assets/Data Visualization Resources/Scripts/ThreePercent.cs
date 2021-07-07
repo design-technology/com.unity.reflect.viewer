@@ -1,4 +1,4 @@
-﻿ 
+ 
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,7 +12,7 @@ public class ThreePercent : MonoBehaviour
     public Text ratio1, ratio2;
 
     // Start is called before the first frame update
-    void Start()
+    void OnEnable()
     {
         solidPanel = 0.75f;
         glassPanel = 0.25f;

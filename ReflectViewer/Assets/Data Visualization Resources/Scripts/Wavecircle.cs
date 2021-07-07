@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,95 +6,65 @@ using UnityEngine.UI;
 
 public class Wavecircle : MonoBehaviour
 {
-    public DataHandler datahandler;
-    float max = 200;
-    float min = 40;
+    public DataHandler dataHandler;
 
+    float min;
+    float max;
     float currentValue;
+    float averageValue;
+
     public string dataName;
 
-    public Image image;
     public Text progress;
     public Text actualValue;
     public Text title;
-
-    bool up = true;
-    int frameCount = 0;
-
-
-    [Range(0, 100)]
-    public float no1;
 
     public Transform wave;
     public Transform s, e;
 
 
-    void Start()
+    public string Unit
     {
-        currentValue = min;
+        get
+        {
+            if (dataName.Contains("daylight"))
+            {
+                return "DF";
+            }
+            else if (dataName.Contains("radiation"))
+            {
+                return "kWh/m2";
+            }
+            else
+            {
+                return "";
+            }
+        }
+    }
+
+    private void OnEnable()
+    {
+        min = dataHandler.GetMin(dataName);
+        max = dataHandler.GetMax(dataName);
+        averageValue = dataHandler.GetAverage(dataName);
+
+        currentValue = dataHandler.GetLocalValue(dataName);
         title.text = dataName;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (frameCount % 40 == 0)
-        {
-            UpdateValue();
-        }
+        if (dataHandler.receiving) return;
+        currentValue = dataHandler.GetLocalValue(dataName);
 
-        frameCount++;
-    }
+        float truePercentageValue =0.0f+ (currentValue - min) / (max - min) * 1f;
 
-    //void UpdatePercent(float f)
-    //{
-    //    wave.position = s.position + (e.position - s.position) * f / 100;
-
-    //    theText.text = Mathf.RoundToInt(f) + "%";
-    //}
-
-    void AddOne()
-    {
-        currentValue++;
-    }
-
-    void MinusOne()
-    {
-        currentValue--;
-    }
+        Debug.LogFormat("wave.position {0}, s.position {1}, e.position {2}, max:{3}, min:{4}, truePerc: {5}", wave.position, s.position, e.position, max, min, truePercentageValue);
+        wave.position = s.position + (e.position - s.position) * truePercentageValue;
+        actualValue.text = Math.Round(currentValue, 2).ToString()+ Unit;
 
 
-    void UpdateValue()
-    {
-        currentValue = datahandler.closestDFFound;
-        //if (currentValue >= max)
-        //{
-        //    up = false;
-        //}
-        //else if (currentValue <= min)
-        //{
-        //    up = true;
-        //}
-
-        //if (up)
-        //{
-        //    AddOne();
-        //}
-        //else
-        //{
-        //    MinusOne();
-        //}
-
-        float val = (currentValue - min) / (max - min)*1f;
-
-        wave.position = s.position + (e.position - s.position) * val;
-        actualValue.text = currentValue + " DF";
-        progress.text = Mathf.RoundToInt(val * 100) + " %";
-
-
-        //var perc = (int)(image.fillAmount * 100) + "%";
-        //progress.text = perc;
-
-        // actualValue.text = currentValue + " dd";
+        progress.text = Mathf.RoundToInt((currentValue / averageValue) * 100) + " %";
     }
 }
