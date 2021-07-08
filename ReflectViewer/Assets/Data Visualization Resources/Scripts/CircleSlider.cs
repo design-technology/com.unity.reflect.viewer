@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,13 +7,15 @@ public class CircleSlider : MonoBehaviour
 {
     public DataHandler dataHandler;
 
-    float min;
-    float max;
-    float currentValue;
-    float averageValue;
+    public float min;
+    public float max;
+    public float currentValue;
+    public float averageValue;
+    public string units;
+    public float distanceData;
 
     public string dataName;
-
+    
 
     public Image image;
     public Text progress;
@@ -23,17 +26,25 @@ public class CircleSlider : MonoBehaviour
 
     void OnEnable()
     {
-        min = dataHandler.GetMin(dataName);
-        max = dataHandler.GetMax(dataName);
-        averageValue = dataHandler.GetAverage(dataName);
+        min = dataHandler.GetMin(dataName.ToLower());
+        max = dataHandler.GetMax(dataName.ToLower());
+        averageValue = dataHandler.GetAverage(dataName.ToLower());
+        units = dataHandler.GetUnit(dataName.ToLower());
+        currentValue = dataHandler.GetLocalValue(dataName.ToLower());
 
-        currentValue = dataHandler.GetLocalValue(dataName);
+        distance.text = Math.Round(dataHandler.GetDistanceToDataPoint(dataName.ToLower()), 2).ToString() + " ";
         title.text = dataName;
     }
 
     void Update()
     {
-        currentValue = dataHandler.GetLocalValue(dataName);
+        // Quit reading the data while it is still loading from external files.
+        if (dataHandler.receiving)
+        {
+            return;
+        }
+
+        currentValue = dataHandler.GetLocalValue(dataName.ToLower());
 
         float val = (currentValue - min) / (max - min);
         image.fillAmount = val;
@@ -41,7 +52,7 @@ public class CircleSlider : MonoBehaviour
         var perc = (int)((currentValue / averageValue) * 100) + "%";
         progress.text = perc;
 
-        actualValue.text = currentValue + dataHandler.GetUnit(dataName);
+        actualValue.text = currentValue + " " + units;
     }
 
 }

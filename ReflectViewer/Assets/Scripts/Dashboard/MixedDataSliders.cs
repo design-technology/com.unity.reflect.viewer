@@ -21,11 +21,12 @@ public class MixedDataSliders : MonoBehaviour
     void OnEnable()
     {
 
-
+        // Read data point values based on the analysis name
+        // Assign random values to the extra slider
         for (int i = 0; i < dataNames.Count; i++)
         {
 
-            if (dataNames[i] == "random" || dataNames[i] == "ratio")
+            if (dataNames[i] == "random")
             {
                 this.min.Add(0);
                 this.max.Add(100);
@@ -33,27 +34,32 @@ public class MixedDataSliders : MonoBehaviour
             }
             else
             {
-                this.min.Add(dataHandler.GetMin(dataNames[i]));
-                this.max.Add(dataHandler.GetMax(dataNames[i]));
-                this.curentValue.Add(dataHandler.GetLocalValue(dataNames[i]));
+                this.min.Add(dataHandler.GetMin(dataNames[i].ToLower()));
+                this.max.Add(dataHandler.GetMax(dataNames[i].ToLower()));
+                this.curentValue.Add(dataHandler.GetLocalValue(dataNames[i].ToLower()));
+                sliders[i].GetComponentInChildren<Text>().text = dataNames[i];
             }
-
-
-
-            sliders[i].GetComponentInChildren<Text>().text = dataNames[i];
         }
     }
 
     // Update is called once per frame
     void Update()
     {
+        // Quit reading the data while it is still loading from external files.
+        if (dataHandler.receiving)
+        {
+            return;
+        }
+
+
+        // Read and update the slider
         for (int i = 0; i < dataNames.Count; i++)
         {
 
-            if (dataNames[i] == "random" || dataNames[i] == "ratio")
+            if (dataNames[i] == "random")
             {
 
-                this.curentValue[i] = curentValue[i] + Random.Range(-10, 10);
+                this.curentValue[i] = curentValue[i] + (Random.Range(-1,1))*0.1f;
 
                 if (this.curentValue[i] < min[i])  { this.curentValue[i] = max[i]; }
                 if (this.curentValue[i] > max[i])  { this.curentValue[i] = min[i]; }
@@ -61,15 +67,10 @@ public class MixedDataSliders : MonoBehaviour
             }
             else
             {
-                this.curentValue[i] = dataHandler.GetLocalValue(dataNames[1]);
+                this.curentValue[i] = dataHandler.GetLocalValue(dataNames[i].ToLower());
             }
 
+            sliders[i].GetComponent<UnityEngine.UI.Slider>().value = (curentValue[i] - min[i]) / (max[i] - min[i]);
         }
-
-        for (int i = 0; i < dataNames.Count; i++)
-        {
-            sliders[i].GetComponent<UnityEngine.UI.Slider>().value = (curentValue[i] - min[i]) / (max[i] - min[i] );
-        }
-
     }
 }

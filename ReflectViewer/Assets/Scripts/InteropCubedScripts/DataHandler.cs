@@ -12,8 +12,10 @@ public class DataHandler : MonoBehaviour
     public Dictionary<Vector3, float> RadValues = new Dictionary<Vector3, float>();
     public Dictionary<Vector3, float> DFValues = new Dictionary<Vector3, float>();
     public Dictionary<Vector3, Color> colValues = new Dictionary<Vector3, Color>();
+
     private float _adf = 0.0f;
-    public float adf()
+
+    public float AverageDaylightFactor()
     {
         if (_adf != 0.0f) return _adf;
         var averageDaylightFactor = 0f;
@@ -26,7 +28,7 @@ public class DataHandler : MonoBehaviour
         return averageDaylightFactor;
     }
     private float _arf = 0.0f;
-    public float arf()
+    public float AverageRadiation()
     {
         if (_arf != 0.0f) return _arf;
         var averageRadiation = 0f;
@@ -43,15 +45,21 @@ public class DataHandler : MonoBehaviour
     public List<Transform> transformsDF = new List<Transform>();
     public List<Transform> transformsCol = new List<Transform>();
 
-
+ 
     public float radiationMin = float.MaxValue;
     public float radiationMax = float.MinValue;
     public float daylightMin = float.MaxValue;
     public float daylightMax = float.MinValue;
 
+    public float radiationDistance;
+    public float daylightDistance;
+
     public float closestRadFound;
     public float closestDFFound;
     public Vector3 closestColFound;
+
+    public string daylightName = "daylight";
+    public string radName = "radiation";
 
     public bool receiving = true;
     private Coroutine receivingCoroutine = null;
@@ -70,6 +78,8 @@ public class DataHandler : MonoBehaviour
         receiving = true;
         if (receivingCoroutine != null)
             StopCoroutine(receivingCoroutine);
+
+        // Read object attributes from Rhino layers.
         var metadata = go.transform.GetComponent<Metadata>();
         if (metadata)
         {
@@ -122,16 +132,16 @@ public class DataHandler : MonoBehaviour
         receiving = false;
     }
 
-    int getClosestPoint(Vector3[] Checks)
+    int GetClosestPointIndex(Vector3[] Checks)
     {
         int bestTarget = -1;
         float closestDistanceSqr = Mathf.Infinity;
         Vector3 currentPosition = CameraPosition.position;
+
         for (int i = 0; i < Checks.Length; i++)
         {
             var potentialTarget = Checks[i];
-            //Vector3 directionToTarget = potentialTarget - currentPosition;
-            float dSqrToTarget = Vector3.Distance(potentialTarget, currentPosition);// directionToTarget.sqrMagnitude;
+            float dSqrToTarget = Vector3.Distance(potentialTarget, currentPosition);
             if (dSqrToTarget < closestDistanceSqr)
             {
                 closestDistanceSqr = dSqrToTarget;
@@ -145,6 +155,7 @@ public class DataHandler : MonoBehaviour
 
     GameObject lastColored = null;
     Color lastColoredoriginal;
+
     void ColorObject(GameObject go)
     {
         if (lastColored != null)
@@ -160,19 +171,33 @@ public class DataHandler : MonoBehaviour
     void FixedUpdate()
     {
         if (receiving) { return; }
-        var closestRad = getClosestPoint(RadValues.Select(x => x.Key).ToArray());
-        var closestDF = getClosestPoint(DFValues.Select(x => x.Key).ToArray());
-        var closestCol = getClosestPoint(colValues.Select(x => x.Key).ToArray());
+
+        var closestRad = GetClosestPointIndex(RadValues.Select(x => x.Key).ToArray());
+
+        var closestDF = GetClosestPointIndex(DFValues.Select(x => x.Key).ToArray());
+
+        var closestCol = GetClosestPointIndex(colValues.Select(x => x.Key).ToArray());
+
+
+        // Update the value if it changed
         if (closestRad != -1 && RadValues.ElementAt(closestRad).Value != closestRadFound)
         {
             closestRadFound = RadValues.ElementAt(closestRad).Value;
             ColorObject(transformsRad[closestRad].gameObject);
+
+            Vector3 currentPosition = CameraPosition.position;
+            radiationDistance = Vector3.Distance(RadValues.ElementAt(closestRad).Key, currentPosition);
         }
+
         if (closestDF != -1 && DFValues.ElementAt(closestDF).Value != closestDFFound)
         {
             closestDFFound = DFValues.ElementAt(closestDF).Value;
             ColorObject(transformsDF[closestDF].gameObject);
+
+            Vector3 currentPosition = CameraPosition.position;
+            daylightDistance = Vector3.Distance(DFValues.ElementAt(closestDF).Key, currentPosition);
         }
+
         if (closestCol != -1 && colValues.ElementAt(closestCol).Key != closestColFound)
         {
             closestColFound = colValues.ElementAt(closestCol).Key;
@@ -181,9 +206,11 @@ public class DataHandler : MonoBehaviour
 
     }
 
+
+    #region Dashboard helpers
     public float GetMin(string analysisName)
     {
-        if (analysisName.Contains("daylight"))
+        if (analysisName.Contains(daylightName))
         {
             return daylightMin;
         }
@@ -196,7 +223,7 @@ public class DataHandler : MonoBehaviour
 
     public float GetMax(string analysisName)
     {
-        if (analysisName.Contains("daylight"))
+        if (analysisName.Contains(daylightName))
         {
             return daylightMax;
         }
@@ -209,11 +236,11 @@ public class DataHandler : MonoBehaviour
 
     public float GetLocalValue(string analysisName)
     {
-        if (analysisName.Contains("daylight"))
+        if (analysisName.Contains(daylightName))
         {
             return closestDFFound;
         }
-        else if (analysisName.Contains("radiation"))
+        else if (analysisName.Contains(radName))
         {
             return closestRadFound;
         }
@@ -222,26 +249,41 @@ public class DataHandler : MonoBehaviour
 
     public float GetAverage(string analysisName)
     {
-        if (analysisName.Contains("daylight"))
+        if (analysisName.Contains(daylightName))
         {
-            return adf();
+            return AverageDaylightFactor();
         }
-        else if (analysisName.Contains("radiation"))
+        else if (analysisName.Contains(radName))
         {
-            return arf();
+            return AverageRadiation();
         }
         return -1f;
     }
+
     public string GetUnit(string analysisName)
     {
-        if (analysisName.Contains("daylight"))
+        if (analysisName.Contains(daylightName))
         {
             return " DF";
         }
-        else if (analysisName.Contains("radiation"))
+        else if (analysisName.Contains(radName))
         {
             return " kWh/m2";
         }
         return "";
     }
+
+    public float GetDistanceToDataPoint(string analysisName)
+    {
+        if (analysisName.Contains(daylightName))
+        {
+            return daylightDistance;
+        }
+        else if (analysisName.Contains(radName))
+        {
+            return radiationDistance;
+        }
+        return -1;
+    }
+    #endregion
 }

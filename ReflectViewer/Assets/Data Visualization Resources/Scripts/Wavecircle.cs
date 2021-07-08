@@ -8,10 +8,11 @@ public class Wavecircle : MonoBehaviour
 {
     public DataHandler dataHandler;
 
-    float min;
-    float max;
-    float currentValue;
-    float averageValue;
+    public float min;
+    public float max;
+    public float currentValue;
+    public float averageValue;
+    public string units;
 
     public string dataName;
 
@@ -23,48 +24,35 @@ public class Wavecircle : MonoBehaviour
     public Transform s, e;
 
 
-    public string Unit
-    {
-        get
-        {
-            if (dataName.Contains("daylight"))
-            {
-                return "DF";
-            }
-            else if (dataName.Contains("radiation"))
-            {
-                return "kWh/m2";
-            }
-            else
-            {
-                return "";
-            }
-        }
-    }
-
     private void OnEnable()
     {
-        min = dataHandler.GetMin(dataName);
-        max = dataHandler.GetMax(dataName);
-        averageValue = dataHandler.GetAverage(dataName);
-
-        currentValue = dataHandler.GetLocalValue(dataName);
+        // Read data point values based on the analysis name
+        min = dataHandler.GetMin(dataName.ToLower());
+        max = dataHandler.GetMax(dataName.ToLower());
+        averageValue = dataHandler.GetAverage(dataName.ToLower());
+        units = dataHandler.GetUnit(dataName.ToLower());
+        currentValue = dataHandler.GetLocalValue(dataName.ToLower());
         title.text = dataName;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (dataHandler.receiving) return;
-        currentValue = dataHandler.GetLocalValue(dataName);
+        // Quit reading the data while it is still loading from external files.
+        if (dataHandler.receiving)
+        {
+            return;
+        }
 
+        //Get local data
+        currentValue = dataHandler.GetLocalValue(dataName.ToLower());
+
+        // The percentage value updated to animation
         float truePercentageValue =0.0f+ (currentValue - min) / (max - min) * 1f;
-
-        Debug.LogFormat("wave.position {0}, s.position {1}, e.position {2}, max:{3}, min:{4}, truePerc: {5}", wave.position, s.position, e.position, max, min, truePercentageValue);
         wave.position = s.position + (e.position - s.position) * truePercentageValue;
-        actualValue.text = Math.Round(currentValue, 2).ToString()+ Unit;
+        actualValue.text = Math.Round(currentValue, 2).ToString() + " " + units;
 
-
+        // The value respective to the average value
         progress.text = Mathf.RoundToInt((currentValue / averageValue) * 100) + " %";
     }
 }
