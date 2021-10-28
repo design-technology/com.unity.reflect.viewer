@@ -1,6 +1,10 @@
 # About
 
-This is a repository for all publicly released packages, tests, and demo projects pertaining to Reflect Viewer. 
+This is a repository for the AEC TECH 2021 workshops Interop Cubed by Grimshaw Architects. 
+It is a forked repository as the workshop showcases the Unity Reflect Viewer. The original repository is for all publicly released packages, tests, and demo projects pertaining to Reflect Viewer. 
+
+# Interop Cubed workshop
+The workshop focuses on interoperability and data visualization among AEC platforms. Leveraging the power of Rhino.Inside and Unity Reflect, participants get the opportunity to learn how to query, modify and analyze Revit elements in Rhino using Grasshopper and explore potential ways of transferring, communicating, and visualizing environmental analysis data of their designs in an immersive Unity enabled VR environment.
 
 **Note that external users need to have signed an access agreement before accessing any non-public files**
 
